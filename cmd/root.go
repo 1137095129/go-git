@@ -22,6 +22,15 @@ watch git repository.`,
 		if err := c.Load(); err != nil {
 			logrus.Fatal(err)
 		}
+		fmt.Println("starting...")
+		client.Run(c)
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		c := &config.Config{}
+		if err := c.Load(); err != nil {
+			logrus.Fatal(err)
+		}
+		fmt.Println("starting...")
 		client.Run(c)
 	},
 }

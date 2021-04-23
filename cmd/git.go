@@ -56,8 +56,7 @@ var gitConfigCmd = &cobra.Command{
 			logrus.Fatal(err)
 		}
 
-		err = c.Write()
-		if err != nil {
+		if err = c.Write(); err != nil {
 			logrus.Fatal(err)
 		}
 	},
