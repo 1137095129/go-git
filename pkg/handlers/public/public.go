@@ -22,8 +22,8 @@ func (p *Public) OpenRepository(c *config.Config) (*git.Repository, error) {
 		if err != nil {
 			if os.IsNotExist(err) {
 				return git.PlainClone(p.localpath, false, &git.CloneOptions{
-					URL:        c.Git.URL,
-					RemoteName: c.Git.Branch,
+					URL:           c.Git.URL,
+					RemoteName:    c.Git.Branch,
 				})
 			}
 			return nil, err
@@ -33,7 +33,13 @@ func (p *Public) OpenRepository(c *config.Config) (*git.Repository, error) {
 }
 
 func (p *Public) Refresh(c *config.Config) (*git.Repository, error) {
-	repository, err := p.OpenRepository(c)
+	repository, err := git.PlainOpenWithOptions(
+		p.localpath,
+		&git.PlainOpenOptions{
+			EnableDotGitCommonDir: true,
+			DetectDotGit:          true,
+		},
+	)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -42,7 +48,7 @@ func (p *Public) Refresh(c *config.Config) (*git.Repository, error) {
 		logrus.Fatal(err)
 	}
 	err = worktree.Pull(&git.PullOptions{
-
+		RemoteName: c.Git.Branch,
 	})
 	if err != nil {
 		logrus.Fatal(err)

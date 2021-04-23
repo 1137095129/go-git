@@ -20,6 +20,7 @@ type Config struct {
 type Git struct {
 	Branch         string `json:"branch" yaml:"branch,omitempty"`
 	RepositoryName string `json:"repositoryName" yaml:"repositoryName,omitempty"`
+	RemoteName     string `json:"remoteName" yaml:"remoteName,omitempty"`
 	URL            string `json:"url" yaml:"url,omitempty"`
 }
 

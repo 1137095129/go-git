@@ -63,6 +63,14 @@ var gitConfigCmd = &cobra.Command{
 		}else {
 			logrus.Fatal(err)
 		}
+		remote, err := cmd.Flags().GetString("remote")
+		if err == nil {
+			if len(remote) > 0 {
+				c.Git.RemoteName = remote
+			}
+		}else {
+			logrus.Fatal(err)
+		}
 		if err = c.Write(); err != nil {
 			logrus.Fatal(err)
 		}
@@ -76,4 +84,5 @@ func init() {
 	gitConfigCmd.Flags().StringP("password", "p", "", "Specify git-password")
 	gitConfigCmd.Flags().StringP("certificate", "c", "", "Specify git-certificate")
 	gitConfigCmd.Flags().StringP("repository", "r", "default", "Specify git-repository-name")
+	gitConfigCmd.Flags().StringP("remote","","origin","Specify git-remote-name")
 }
