@@ -43,8 +43,10 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 
 func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 	var flag = false
+	fmt.Println(fmt.Sprintf("watch git url: %s ,branch name:%s,repository name:%s", conf.Git.URL, conf.Git.Branch, conf.Git.RepositoryName))
 	once.Do(func() {
 		c.lastPullTime = new(time.Time)
+		fmt.Println("init repository")
 		_, err := eventHandler.OpenRepository(conf)
 		if err != nil {
 			logrus.Fatal(err)
@@ -87,8 +89,19 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 
 	if c.lastPullTime.Before(t) {
 		*c.lastPullTime = t
+		fmt.Println(
+			fmt.Sprintf(
+				"get new commit when %d-%d-%d %d-%d-%d, will be refresh",
+				c.lastPullTime.Year(),
+				c.lastPullTime.Month(),
+				c.lastPullTime.Day(),
+				c.lastPullTime.Hour(),
+				c.lastPullTime.Minute(),
+				c.lastPullTime.Second(),
+			),
+		)
 		_, err := eventHandler.Refresh(conf)
-		if err!=nil {
+		if err != nil {
 			logrus.Fatal(err)
 		}
 	}

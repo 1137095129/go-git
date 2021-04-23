@@ -2,10 +2,10 @@ package public
 
 import (
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
 	"github.com/wang1137095129/go-git/config"
 	"github.com/wang1137095129/go-git/utils"
+	"os"
 	"path/filepath"
 )
 
@@ -18,10 +18,17 @@ func (p *Public) OpenRepository(c *config.Config) (*git.Repository, error) {
 		return git.PlainOpen(p.localpath)
 	} else {
 		p.localpath = filepath.Join(utils.HomeDir(), c.Git.RepositoryName)
-		return git.PlainClone(p.localpath, false, &git.CloneOptions{
-			URL:           c.Git.URL,
-			ReferenceName: plumbing.ReferenceName(c.Git.Branch),
-		})
+		_, err := os.Stat(p.localpath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				return git.PlainClone(p.localpath, false, &git.CloneOptions{
+					URL:        c.Git.URL,
+					RemoteName: c.Git.Branch,
+				})
+			}
+			return nil, err
+		}
+		return git.PlainOpen(p.localpath)
 	}
 }
 
