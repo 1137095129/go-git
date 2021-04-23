@@ -48,6 +48,7 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 	lock.Wait()
 	var flag = false
 	fmt.Println(fmt.Sprintf("check git url: %s ,branch name:%s,repository name:%s", conf.Git.URL, conf.Git.Branch, conf.Git.RepositoryName))
+	//刚开始初始化
 	once.Do(func() {
 		c.lastPullTime = new(time.Time)
 		fmt.Println("init repository")
@@ -92,57 +93,33 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 		return
 	}
 
+	lock.Wait()
+	lock.Add(1)
+	defer lock.Done()
+
+	//打开git仓库
 	repository, err := eventHandler.OpenRepository(conf)
 
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	//从远端获取更新
+	repository.Fetch(&git.FetchOptions{RemoteName: conf.Git.Branch})
+
 	fmt.Println(fmt.Sprintf("check %s/%s", conf.Git.RemoteName, conf.Git.Branch))
 
+	//获取远端最新一次更新
 	resolveRevision, err := repository.ResolveRevision(plumbing.Revision(fmt.Sprintf("%s/%s", conf.Git.RemoteName, conf.Git.Branch)))
-
 	if err != nil {
 		logrus.Fatal(err)
 	}
-
 	commit, err := repository.CommitObject(*resolveRevision)
-
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
-	head, err := repository.Head()
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	headCommit, err := repository.CommitObject(head.Hash())
-
-	if err!=nil {
-		logrus.Fatal(err)
-	}
-
-	isAncestor, err := headCommit.IsAncestor(commit)
-
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	fmt.Println(fmt.Sprintf("Is the HEAD an IsAncestor of origin/master? : %v",isAncestor))
-
-	fmt.Println(
-		fmt.Sprintf(
-			"get commit when %d-%d-%d %d:%d:%d, will be refresh",
-			commit.Committer.When.Year(),
-			commit.Committer.When.Month(),
-			commit.Committer.When.Day(),
-			commit.Committer.When.Hour(),
-			commit.Committer.When.Minute(),
-			commit.Committer.When.Second(),
-		),
-	)
-
+	//更新git仓库
 	if c.lastPullTime.Before(commit.Committer.When) {
 		*c.lastPullTime = commit.Committer.When
 		fmt.Println(
@@ -156,8 +133,6 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 				c.lastPullTime.Second(),
 			),
 		)
-		lock.Wait()
-		defer lock.Done()
 		_, err := eventHandler.Refresh(conf)
 		if err != nil {
 			logrus.Fatal(err)
