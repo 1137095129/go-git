@@ -138,6 +138,8 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 			logrus.Fatal(err)
 		}
 		fmt.Println("pull success")
+	} else {
+		fmt.Println("don't need pull")
 	}
 
 }
