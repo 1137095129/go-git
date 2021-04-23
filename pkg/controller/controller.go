@@ -103,7 +103,11 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 	}
 
 	//从远端获取更新
-	repository.Fetch(&git.FetchOptions{RemoteName: conf.Git.Branch})
+	repository.Fetch(
+		&git.FetchOptions{
+			RemoteName: conf.Git.RemoteName,
+		},
+	)
 
 	fmt.Println(fmt.Sprintf("check %s/%s", conf.Git.RemoteName, conf.Git.Branch))
 
