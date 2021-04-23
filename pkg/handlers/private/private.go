@@ -38,9 +38,10 @@ func (p *Private) OpenRepository(c *config.Config) (*git.Repository, error) {
 			p.localpath,
 			false,
 			&git.CloneOptions{
-				URL:  c.Git.URL,
-				Auth: publicKeys,
-				ReferenceName: plumbing.ReferenceName(c.Git.Branch) ,
+				URL:           c.Git.URL,
+				Auth:          publicKeys,
+				ReferenceName: plumbing.NewBranchReferenceName(c.Git.Branch),
+				RemoteName:    c.Git.RemoteName,
 			},
 		)
 	}
@@ -69,7 +70,9 @@ func (p *Private) Refresh(c *config.Config) (*git.Repository, error) {
 		logrus.Fatal(err)
 	}
 	err = worktree.Pull(&git.PullOptions{
-		Auth: publicKeys,
+		Auth:          publicKeys,
+		ReferenceName: plumbing.NewBranchReferenceName(c.Git.Branch),
+		RemoteName:    c.Git.RemoteName,
 	})
 	return repository, nil
 }

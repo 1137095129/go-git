@@ -35,7 +35,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	for true {
 		select {
 		case <-c:
-			timer.Reset(10 * time.Second)
+			timer.Reset(1 * time.Minute)
 			go controller.Run(conf, eventHandler)
 		case <-signals:
 			fmt.Println("stop controller")
@@ -46,6 +46,8 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 
 func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 	lock.Wait()
+	lock.Add(1)
+	defer lock.Done()
 	var flag = false
 	fmt.Println(fmt.Sprintf("check git url: %s ,branch name:%s,repository name:%s", conf.Git.URL, conf.Git.Branch, conf.Git.RepositoryName))
 	//刚开始初始化
@@ -92,10 +94,6 @@ func (c *Controller) Run(conf *config.Config, eventHandler handlers.Handler) {
 	if flag {
 		return
 	}
-
-	lock.Wait()
-	lock.Add(1)
-	defer lock.Done()
 
 	//打开git仓库
 	repository, err := eventHandler.OpenRepository(conf)

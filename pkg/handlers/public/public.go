@@ -1,7 +1,9 @@
 package public
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/sirupsen/logrus"
 	"github.com/wang1137095129/go-git/config"
 	"github.com/wang1137095129/go-git/utils"
@@ -21,9 +23,12 @@ func (p *Public) OpenRepository(c *config.Config) (*git.Repository, error) {
 		_, err := os.Stat(p.localpath)
 		if err != nil {
 			if os.IsNotExist(err) {
+				fmt.Println(fmt.Sprintf("clone form %s ,remote name:%s , reference name:%s ", c.Git.URL, c.Git.RemoteName, c.Git.Branch))
+				referenceName := plumbing.NewBranchReferenceName(c.Git.Branch)
 				return git.PlainClone(p.localpath, false, &git.CloneOptions{
 					URL:           c.Git.URL,
-					RemoteName:    c.Git.Branch,
+					RemoteName:    c.Git.RemoteName,
+					ReferenceName: referenceName,
 				})
 			}
 			return nil, err
@@ -33,13 +38,7 @@ func (p *Public) OpenRepository(c *config.Config) (*git.Repository, error) {
 }
 
 func (p *Public) Refresh(c *config.Config) (*git.Repository, error) {
-	repository, err := git.PlainOpenWithOptions(
-		p.localpath,
-		&git.PlainOpenOptions{
-			EnableDotGitCommonDir: true,
-			DetectDotGit:          true,
-		},
-	)
+	repository, err := git.PlainOpen(p.localpath)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -48,7 +47,8 @@ func (p *Public) Refresh(c *config.Config) (*git.Repository, error) {
 		logrus.Fatal(err)
 	}
 	err = worktree.Pull(&git.PullOptions{
-		RemoteName: c.Git.Branch,
+		RemoteName:    c.Git.RemoteName,
+		ReferenceName: plumbing.NewBranchReferenceName(c.Git.Branch),
 	})
 	if err != nil {
 		logrus.Fatal(err)
