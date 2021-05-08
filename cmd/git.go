@@ -9,7 +9,10 @@ import (
 var gitConfigCmd = &cobra.Command{
 	Use:   "gitconfig",
 	Short: "specific git-repository configuration",
-	Long:  `specific git-repository configuration`,
+	Long:  `
+specific git-repository configuration
+Like go_git gitconfig --url [URL] -b [BRANCH] -u [USERNAME] -p [PASSWORD] -c [CERTIFICATE] -r [REPOSITORY] --remote [REMOTE]
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		c, err := config.New()
 		if err != nil {
